@@ -1,0 +1,370 @@
+---
+variables_update_rules:
+  时间:
+    format: ${yyyy}年-${mm}月-${dd}日-${hh}:${mm}
+    check:
+      - 24小时制
+      - 每次剧情推进、行动、休息或旅行后更新，保持时间流逝合理
+      - 若时间跨度较大，应说明跳跃原因
+  地点:
+    format: ${大陆方位}-${区域}-${势力}-${子级势力}-${聚落/地标}-${区位}-${详细位置}
+    check:
+      - 随<user>移动实时变更
+      - 按实际情况保留5~7层，从大到小排列
+  天气:
+    format: ${天气现象}，${气温}，${湿度}，${风向}
+    check:
+      - 随<user>所在区域天气变化时更新
+      - 天气变化需合理，避免频繁无意义更新
+  纳米尘污染等级:
+    format: ${污染等级}(${等级描述})
+    check:
+      - 随<user>所在区域的纳米尘污染程度变化更新
+  任务列表:
+    type: |-
+      {
+        [任务名称: string]: {
+          状态: string; // 任务当前状态
+          进展: string; // 任务的当前进展与阶段说明
+          详情: string; // 任务委托方、等级与详细描述
+          目标: string; // 完成任务所需的条件&时间
+          奖励: string; // 任务奖励&领取方式
+        }
+      }
+    check:
+      - 随剧情推进、<user>实际行为更新
+      - 任务当前状态可为任意描述，根据实际情况填写，包括但不限于`进行中/已完成/失败/可结算`等等
+      - 任务完成且领取奖励后直接删除该任务
+
+  主角:
+    身份: &identity
+      type: Array<string>
+      check:
+        - 随剧情推进、角色实际行为更新
+        - 可同时拥有多个身份
+        - 相似或重复的身份不记录
+    SRB功绩:
+      type: number
+      value: 记录<user>在SRB绩效系统获得的功绩
+      check:
+        - 完成任务或达成特定成就时增加
+    功绩排名:
+      format: ${SRB指挥官等级}(${排名})
+      value: 记录<user>在SRB绩效系统中的功绩排名
+      check:
+        - 达到进入排名的标准时更新
+    任务完成数量:
+      type: number
+      check:
+        - 随<user>完成任务更新
+    装备: &equip
+      type: |-
+        {
+          [装备名: string]: {
+            等级: string;
+            类型: string;
+            位置: string;
+            射程: string;
+            射击次数: string;
+            威力: string;
+            效果: { [效果名: string]: string };
+            描述: string;
+            状态: string;
+          }
+        }
+      check:
+        - 随<user>装备获取、装备更换、损坏、修复或改装更新
+        - 武器需填写射程、射击次数、威力和效果；非武器可将不适用字段填为无
+    植入物: &implant
+      type: |-
+        {
+          [植入物名称: string]: {
+            等级: string;
+            类型: string;
+            效果: { [效果名: string]: string };
+            副作用: string;
+            描述: string;
+            状态: string;
+          }
+        }
+      check:
+        - 随<user>安装、移除、损坏、修复或升级植入物更新
+    技能: &skill
+      type: |-
+        {
+          [技能名称: string]: {
+            等级: string;
+            类型: string;
+            消耗: string;
+            效果: { [效果名: string]: string };
+            描述: string;
+          }
+        }
+      check:
+        - 随角色学习、遗忘、升级技能更新
+        - 技能名称必须为中文
+    属性.${四维}:
+      type: number
+      四维: 交涉 | 指挥 | 瞄准 | 智力
+      check:
+        - 单次变化应有明确的剧情依据
+  信用点: &currency
+    type: number
+    check:
+      - 随交易、获取、消费更新
+      - 四舍五入取整
+  钛币: *currency
+
+  陆行舰:
+    type: |-
+      {
+        [陆行舰型号: string]: {
+          在场: boolean;
+          等级: string;
+          描述: string;
+          设施已用容量: number;
+          设施容量: number;
+          设施等级上限: number;
+          武器已用容量: number;
+          武器容量: number;
+          机库已用容量: number;
+          机库容量: number;
+          舰内设施: { [设施名称: string]: { 等级: string; 类型: string; 效果: { [k: string]: string }; 占容: number; 描述: string; 状态: string } };
+          舰载武装: { [武装名称: string]: { 等级: string; 类型: string; 射程: string; 射击次数: string; 威力: string; 效果: { [k: string]: string }; 占容: number; 描述: string; 状态: string } };
+          舰载机库: { [机库名称: string]: { 等级: string; 类型: string; 占容: number; 描述: string; 状态: string } };
+        }
+      }
+    check:
+      - 随舰船等级变化更新
+      - 若只存在一艘当前陆行舰，同步维护陆行舰.等级、描述、设施最大数量、设施等级上限、武器最大数量、机库容量
+
+    "${陆行舰型号}":
+      在场:
+        type: boolean
+        check:
+          - 随剧情推进、角色行动更新
+      等级:
+        type: string
+        check:
+          - 随当前陆行舰等级变化更新
+      描述:
+        type: string
+        check:
+          - 随当前陆行舰外观、尺寸、核心功能或重大损伤变化更新
+      设施已用容量: &Occupied_space
+        type: number
+        check:
+          - 随安装、卸载、等级变化更新
+          - 占容总和不得超过对应容量
+      设施容量: &maximum_capacity
+        type: number
+        check:
+          - 随当前陆行舰等级、舰体扩建或结构模块变化更新
+      设施等级上限:
+        type: number
+        check:
+          - 随当前陆行舰等级、科技权限或工程设施变化更新
+      武器已用容量: *Occupied_space
+      武器容量: *maximum_capacity
+      机库已用容量: *Occupied_space
+      机库容量: *maximum_capacity
+      舰内设施:
+        type: |-
+          {
+            [设施名称: string]: {
+              等级: string;
+              类型: string;
+              效果: { [效果名: string]: string };
+              占容: string;
+              描述: string;
+              状态: string;
+            }
+          }
+        check:
+          - 随设施建造、升级、损坏、修复或拆除更新
+          - 不得超过陆行舰.设施容量和陆行舰.设施等级上限
+      舰载武装:
+        type: |-
+          {
+            [武装名称: string]: {
+              等级: string;
+              类型: string;
+              射程: string;
+              射击次数: string;
+              威力: string;
+              效果: { [效果名: string]: string };
+              占容: string;
+              描述: string;
+              状态: string;
+            }
+          }
+        check:
+          - 随舰船武装安装、更换、损坏、修复或弹药状态变化更新
+          - 不得超过陆行舰.武器容量
+      舰载机库:
+        type: |-
+          {
+            [机库名称: string]: {
+              等级: string;
+              类型: string;
+              效果: { [效果名: string]: string };
+              占容: string;
+              描述: string;
+              状态: string;
+            }
+          }
+        check:
+          - 随舰船载具装载、替换、改装、损毁或修复更新
+          - 所有载具已用容量合计不得超过陆行舰.机库容量
+  资源:
+    物品库:
+      type: |-
+        {
+          [物品名称: string]: {
+            描述: string;
+            效果: { [效果名: string]: string };
+            类型: string;
+            数量: number;
+          }
+        }
+      check:
+        - 获取、使用、丢弃物品更新
+    武备库:
+      type: |-
+        {
+          [武器名称: string]: {
+            等级: string;
+            类型: string;
+            射程: string;
+            射击次数: string;
+            威力: string;
+            效果: { [效果名: string]: string };
+            描述: string;
+            数量: number;
+          }
+        }
+      check:
+        - 获取、装备、丢弃武器更新
+        - 武器需填写射程、射击次数、威力和效果
+
+  关系列表:
+    type: |-
+      {
+        [非人形角色名称: string]: {
+          身份: string;
+          好感: number;
+          外貌: string;
+          着装: string;
+          性格: string;
+          装备: { [装备名: string]: { 等级: string; 类型: string; 位置: string; 射程: string; 射击次数: string; 威力: string; 效果: { [k: string]: string }; 描述: string; 状态: string } };
+          植入物: { [植入物名称: string]: { 等级: string; 类型: string; 效果: { [k: string]: string }; 副作用: string; 描述: string; 状态: string } };
+          技能: { [技能名: string]: { 等级: string; 类型: string; 消耗: string; 效果: { [k: string]: string }; 描述: string } };
+          属性: { 体能: string; 反应: string; 技术: string; 意志: string; 指挥: string };
+        }
+      }
+    check:
+      - 角色名称必须使用唯一、完整、正式的名称
+      - 随<user>与其他非人形角色互动更新
+      - 若该角色不是战斗或行动相关角色，装备、植入物、技能、属性可保持为空对象或简短概括
+
+  人形列表:
+    type: |-
+      {
+        [代号: string]: {
+          在场: boolean;
+          身份: string;
+          稀有度: string;
+          精神负荷: number;
+          好感度: number;
+          性格: string;
+          外貌: string;
+          着装: string;
+          职业: string;
+          战术: string;
+          战损程度: string;
+          装备: { [装备名: string]: { 等级: string; 类型: string; 位置: string; 射程: string; 射击次数: string; 威力: string; 效果: { [k: string]: string }; 描述: string; 状态: string } };
+          植入物: { [植入物名称: string]: { 等级: string; 类型: string; 效果: { [k: string]: string }; 副作用: string; 描述: string; 状态: string } };
+          技能: { [技能名: string]: { 等级: string; 类型: string; 消耗: string; 效果: { [k: string]: string }; 描述: string } };
+          能力: { 破坏能级: string; 结构韧性: string; 神经机动: string; 链路算力: string; 工程制造: string; 理智屏障: string; 素体潜能: string };
+        }
+      }
+    check:
+      - 人形代号必须使用唯一、完整、正式的代号
+      - 随人形调动、装备更换、植入物变化、技能解锁、战术调整、属性成长或战损变化更新
+      - 当前在场表示该人形是否正在当前场景、当前任务队伍或可立即参与互动；进入场景时设为true，离开场景、留守陆行舰、远程待命或暂时失联时设为false
+      - 战术记录该人形默认行动指令，例如先移动、攻击、压制、撤回或保护指定目标
+      - 武器需填写射程、射击次数、威力和效果；非武器可将不适用字段填为无
+    "${角色名}":
+      在场:
+        type: boolean
+        check:
+          - 随剧情推进、角色行动更新
+      身份: *identity
+      稀有度:
+        type: string
+        range: D|C|B|A|S|X|EX
+        check:
+          - 随SRB认证而更新
+      精神负荷:
+        type: number
+        range: -100~100
+        check:
+          - 变化区间为-5~5
+          - 具体变化规则参考"精神负荷定义"
+      好感度:
+        type: number
+        range: -100~100
+        check:
+          - 变化区间为-5~5
+          - 具体变化规则参考"好感度定义"
+      性格: &major_change
+        check:
+          - 发生实质性变化时才更新
+      喜爱: *major_change
+      外貌: *major_change
+      战术:
+        type: string
+        check:
+        - 记录角色当前默认行动指令或战斗倾向
+        - 仅在角色明确调整战术、战场条件迫使战术变化或长期行为稳定改变时更新
+      职业:
+        type: string
+        check:
+          - 记录角色当前职业或主要功能定位
+          - 仅在角色职业发生实质性变化时更新，例如从侦察转为突击，从医疗转为工程等
+      战损程度:
+        type: string
+        check:
+          - 随角色受伤变化更新
+      装备: *equip
+      植入物: *implant
+      技能: *skill
+      能力.${六维检定与潜能}:
+        type: string
+        六维检定与潜能: 破坏能级 | 结构韧性 | 神经机动 | 链路算力 | 工程制造 | 理智屏障 | 素体潜能
+      check:
+        - 随明确机体数据变化而更新
+  资讯:
+    舰上信息:
+      type: |-
+        {
+          人形日常: string; // 人形在船上的日常活动记录
+          最近战报: string; // 最近一次战斗的战报
+          AI建议: string; // 舰载AI对<user>的建议
+          指挥官动向: string; // 在别人眼里看来<user>在做什么
+        }
+      check: &news_check
+        - 公告内容为空时需立刻进行一次全量更新
+        - 每次回复更新其中2~3条
+        - 每条公告内容至少80字
+    SRB公告:
+      type: |-
+        {
+          附近威胁: string; // 在<user>附近的敌对势力或危险情况
+          附近活动: string; // 在<user>附近的势力或SRB的公开活动
+          SRB调动: string; // SRB内部的军事、重要人员调动信息
+          高价通缉: string; // 高价通缉令信息
+        }
+      check:
+        - *news_check
+        - 不得围绕<user>展开
