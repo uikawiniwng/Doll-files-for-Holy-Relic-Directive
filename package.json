@@ -83,12 +83,19 @@
     "@vueuse/integrations": "^13.9.0",
     "@vueuse/shared": "^13.9.0",
     "async-wait-until": "^2.0.31",
+<<<<<<< HEAD
+=======
+    "axios": "1.14.0",
+>>>>>>> 1fdfca54e89542414750e2c88ad8fca7d4a3f85c
     "compare-versions": "^6.1.1",
     "dedent": "^1.7.2",
     "gsap": "^3.15.0",
     "jquery": "^3.7.1",
     "jqueryui": "^1.11.1",
+<<<<<<< HEAD
     "js-yaml": "4.1.1",
+=======
+>>>>>>> 1fdfca54e89542414750e2c88ad8fca7d4a3f85c
     "json5": "^2.2.3",
     "jsonrepair": "^3.14.0",
     "klona": "^2.0.6",
@@ -105,5 +112,19 @@
     "vue3-pixi": "1.0.0-beta.3",
     "yaml": "^2.9.0",
     "zod": "^4.4.3"
+<<<<<<< HEAD
+=======
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "@tailwindcss/oxide",
+      "electron",
+      "esbuild",
+      "javascript-obfuscator",
+      "unrs-resolver",
+      "vue-demi"
+    ]
+>>>>>>> 1fdfca54e89542414750e2c88ad8fca7d4a3f85c
   }
 }
