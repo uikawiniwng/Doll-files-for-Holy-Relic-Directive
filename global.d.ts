@@ -6,6 +6,7 @@ declare module '*?url' {
   const content: string;
   export default content;
 }
+<<<<<<< HEAD
 declare module '*.html' {
   const content: string;
   export default content;
@@ -14,10 +15,23 @@ declare module '*.md' {
   const content: string;
   export default content;
 }
+=======
+>>>>>>> 92bc9ed4a5ff1e65a494b9644780983031cdb1df
 declare module '*.css' {
   const content: unknown;
   export default content;
 }
+<<<<<<< HEAD
+=======
+declare module '*.html' {
+  const content: string;
+  export default content;
+}
+declare module '*.md' {
+  const content: string;
+  export default content;
+}
+>>>>>>> 92bc9ed4a5ff1e65a494b9644780983031cdb1df
 declare module '*.yaml' {
   const content: any;
   export default content;
@@ -28,6 +42,7 @@ declare module '*.vue' {
   export default component;
 }
 
+<<<<<<< HEAD
 type LiteralUnion<LiteralType, BaseType extends Primitive = string> = import('type-fest').LiteralUnion<
   LiteralType,
   BaseType
@@ -36,6 +51,8 @@ type PartialDeep<T> = import('type-fest').PartialDeep<T>;
 type SetRequired<BaseType, Keys extends keyof BaseType> = import('type-fest').SetRequired<BaseType, Keys>;
 type Primitive = import('type-fest').Primitive;
 
+=======
+>>>>>>> 92bc9ed4a5ff1e65a494b9644780983031cdb1df
 declare const YAML: typeof import('yaml');
 
 declare const z: typeof import('zod');
@@ -46,5 +63,11 @@ declare namespace z {
 }
 
 declare module 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/util/mvu_zod.js' {
+<<<<<<< HEAD
   export function registerMvuSchema(schema: z.ZodType<Record<string, any>> | (() => z.ZodType<Record<string, any>>)): void;
+=======
+  export function registerMvuSchema(
+    schema: z.ZodType<Record<string, any>> | (() => z.ZodType<Record<string, any>>),
+  ): void;
+>>>>>>> 92bc9ed4a5ff1e65a494b9644780983031cdb1df
 }
